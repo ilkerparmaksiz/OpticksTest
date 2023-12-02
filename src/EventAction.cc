@@ -50,6 +50,7 @@ EventAction::EventAction(RunAction* runAction)
 
 void EventAction::BeginOfEventAction(const G4Event* evt)
 {
+  // Opticks
   auto fRecord=U4Recorder::Get();
     fRecord->BeginOfEventAction_(evt->GetEventID());
     auto fSEvt=SEvt::Get(evt->GetEventID());
@@ -63,11 +64,12 @@ void EventAction::BeginOfEventAction(const G4Event* evt)
 
 void EventAction::EndOfEventAction(const G4Event* evt)
 {
-
+    // Opticks
     auto fSEvt=SEvt::Get(evt->GetEventID());
    // fSEvt->endOfEvent(evt->GetEventID());
     auto fRecord=U4Recorder::Get();
     fRecord->EndOfEventAction_(evt->GetEventID());
+
   // accumulate statistics in run action
   fRunAction->AddEdep(fEdep);
    G4cout<<" Opticks End of Event Action" <<G4endl;

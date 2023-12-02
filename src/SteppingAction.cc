@@ -74,6 +74,8 @@ void SteppingAction::UserSteppingAction(const G4Step* step)
   auto atrack=step->GetTrack();
 
     if(atrack->GetParticleDefinition()==G4Alpha::Definition()){
+
+        // Opticks
       std::cout<<"---- Collecting steps here ----" <<std::endl;
       U4::CollectGenstep_DsG4Scintillation_r4695(atrack,step,100,0,0);
 
