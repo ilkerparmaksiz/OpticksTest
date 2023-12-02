@@ -75,8 +75,6 @@ void SteppingAction::UserSteppingAction(const G4Step* step)
 
     if(atrack->GetParticleDefinition()==G4Alpha::Definition()){
       std::cout<<"---- Collecting steps here ----" <<std::endl;
-      //cudaDeviceReset();`
-      //cudaDeviceSynchronize();
       U4::CollectGenstep_DsG4Scintillation_r4695(atrack,step,100,0,0);
 
 

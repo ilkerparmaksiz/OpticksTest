@@ -115,7 +115,7 @@ int main(int argc,char** argv)
     // Opticks
     auto fRecorder= new U4Recorder();
     SEventConfig::SetMaxPhoton(1000000);
-    SEventConfig::SetIntegrationMode(SEventConfig::IntegrationMode());
+    SEventConfig::SetRGModeSimulate();
     SEventConfig::GPU_Simulation();
     SEventConfig::Save(".");
     //std::cout<< SEventConfig::Desc() << std::endl;
