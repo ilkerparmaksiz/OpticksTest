@@ -56,6 +56,24 @@ int main(int argc,char** argv)
   // Detect interactive mode (if no arguments) and define UI session
   //
 
+    // Opticks
+    printf("%s\n", "OPTICKS_G4CX" );
+    //cudaDeviceReset();
+    setenv("GEOM","B1",1); // Initialize enviroment variable named GEOM with B1 , 1 (exported)
+    OPTICKS_LOG__(argc,argv);
+    // Opticks
+    auto fRecorder= new U4Recorder();
+    SEventConfig::SetMaxPhoton(1000000);
+    //SEventConfig::SetRGModeSimulate();
+    SEventConfig::SetRGModeRender();
+    //SEventConfig::SetRGModeSimtrace();
+    SEventConfig::SetIntegrationMode(3);
+    SEventConfig::Save(".");
+    //std::cout<< SEventConfig::Desc() << std::endl;
+    //SEventConfig::SetStandardFullDebug();
+
+    //U4Recorder* fRecorder = new U4Recorder();
+
   G4UIExecutive* ui = nullptr;
   if ( argc == 1 ) { ui = new G4UIExecutive(argc, argv); }
 
@@ -107,21 +125,7 @@ int main(int argc,char** argv)
   // Get the pointer to the User Interface manager
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
-    // Opticks
-    printf("%s\n", "OPTICKS_G4CX" );
-    //cudaDeviceReset();
-    setenv("GEOM","B1",1); // Initialize enviroment variable named GEOM with B1 , 1 (exported)
-    OPTICKS_LOG__(argc,argv);
-    // Opticks
-    auto fRecorder= new U4Recorder();
-    SEventConfig::SetMaxPhoton(1000000);
-    SEventConfig::SetRGModeSimulate();
-    SEventConfig::GPU_Simulation();
-    SEventConfig::Save(".");
-    //std::cout<< SEventConfig::Desc() << std::endl;
-    //SEventConfig::SetStandardFullDebug();
 
-    //U4Recorder* fRecorder = new U4Recorder();
   // Process macro or start UI session
   //
   if ( ! ui ) {

@@ -87,7 +87,8 @@ void EventAction::EndOfEventAction(const G4Event* evt)
 
     //g4cx->simulate(eventID);
     //g4cx->render();
-    g4cx->simulate(eventID);
+    g4cx->render();
+    //g4cx->simulate(eventID);
     //}
     // Get the hits
     //int nhits=SEvt::GetNumHit(eventID);

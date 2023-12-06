@@ -45,7 +45,8 @@
 #include "U4Physics.hh"
 #include <cuda_runtime.h>
 #include <globals.hh>
-
+#include "U4Scint.h"
+#include "U4Material.hh"
 namespace B1
 {
 
@@ -120,6 +121,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     mpt->AddConstProperty("SCINTILLATIONTIMECONSTANT2",   3480.*ns);
     mpt->AddConstProperty("SCINTILLATIONYIELD1", .136);
     mpt->AddConstProperty("SCINTILLATIONYIELD2", .864);
+
+    mpt->AddProperty("FASTCOMPONENT",   sc_energy,intensity,1);
+    mpt->AddProperty("SLOWCOMPONENT",  sc_energy,intensity,1);
+    mpt->AddProperty("REEMISSIONPROB",  sc_energy,intensity,1);
     mpt->AddConstProperty("RESOLUTIONSCALE",    1.0);
 
     // Get nist material manager
@@ -128,7 +133,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   // Envelope parameters
   //
   G4double env_sizeXY = 20*cm, env_sizeZ = 30*cm;
-    G4String name = "GAr";
+    G4String name = "GasAr";
 
     G4Material* env_mat = G4Material::GetMaterial(name, false);
 
@@ -166,9 +171,11 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
      // Set  Gas Argon Materialies table
      env_mat->SetMaterialPropertiesTable(mpt);
 
-    // Composition ranges correspond to stainless steel grade 304L
 
-    G4Material* steelmat = G4Material::GetMaterial("Steel", false);
+
+    // Composition ranges correspond to stainless steel grade 304L
+    name = "STEEL";
+    G4Material* steelmat = G4Material::GetMaterial(name, false);
 
     if (steelmat == 0) {
 
@@ -199,7 +206,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4double world_sizeXY = 1.2*env_sizeXY;
   G4double world_sizeZ  = 1.2*env_sizeZ;
   G4Material* world_mat = nist->FindOrBuildMaterial("G4_AIR");
-
   auto solidWorld = new G4Box("World",                           // its name
     0.5 * world_sizeXY, 0.5 * world_sizeXY, 0.5 * world_sizeZ);  // its size
 
@@ -219,19 +225,17 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   //
   // Envelope
   //
-  auto solidEnv = new G4Box("GasAr",                    // its name
+  auto solidEnv = new G4Box("GasAr_Solid",                    // its name
     0.5 * env_sizeXY, 0.5 * env_sizeXY, 0.5 * env_sizeZ);  // its size
 
-  auto logicEnv = new G4LogicalVolume(solidEnv,  // its solid
-    env_mat,// its material
-    "GasAr");                                 // its name
+  auto logicEnv = new G4LogicalVolume(solidEnv,env_mat,"GasAr_Logic");
 
 
-    auto Steel_Cover_solid = new G4Box("SteelCover",                    // its name
-                              0.5 * env_sizeXY+5*CLHEP::mm, 0.5 * env_sizeXY+5*CLHEP::mm, 0.5 * env_sizeZ+5*CLHEP::mm);  // its size
+    auto Steel_Cover_solid = new G4Box("SteelCover_Solid",                    // its name
+                              0.5 * env_sizeXY+5*CLHEP::mm, 0.5 * env_sizeXY+10*CLHEP::mm, 0.5 * env_sizeZ+5*CLHEP::mm);  // its size
     auto Steel_Cover_logic = new G4LogicalVolume(Steel_Cover_solid,  // its solid
                                                  steelmat,                                     // its material
-                                        "GasAr");                                 // its name
+                                        "SteelCover_logic");                                 // its name
   //
   //always return the physical World
   //
@@ -241,8 +245,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   std::cout <<"Setting our detector geometry with opticks" <<std::endl;
   //std::cout << U4Physics::LEVEL <<std::endl;
   //;
+
   G4CXOpticks::Get()->SetGeometry(physWorld);
-  //cudaDeviceSynchronize();
 
 
     std::cout << SEventConfig::Desc() <<std::endl;
