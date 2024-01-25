@@ -65,7 +65,8 @@ int main(int argc,char** argv)
     auto fRecorder= new U4Recorder();
     SEventConfig::SetMaxPhoton(1000000);
     //SEventConfig::SetRGModeSimulate();
-    SEventConfig::SetRGModeRender();
+    //SEventConfig::SetRGModeRender();
+    SEventConfig::SetRGModeSimulate();
     //SEventConfig::SetRGModeSimtrace();
     SEventConfig::SetIntegrationMode(3);
     SEventConfig::Save(".");
