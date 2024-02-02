@@ -36,6 +36,8 @@
 #  include "NP.hh"
 #  include "G4CXOpticks.hh"
 #include "U4Recorder.hh"
+#include "U4Hit.h"
+#include "U4HitGet.h"
 namespace {G4Mutex opticks_mt =G4MUTEX_INITIALIZER;}
 namespace B1
 {
@@ -79,8 +81,10 @@ void EventAction::EndOfEventAction(const G4Event* evt)
     G4int eventID=evt->GetEventID();
     G4int ngenstep=SEvt::GetNumGenstepFromGenstep(eventID);
     G4int nphotons=SEvt::GetNumPhotonCollected(eventID);
+    G4int nHits=SEvt::GetNumHit(eventID);
     G4cout << "Number of Steps Generated " <<ngenstep << G4endl;
     G4cout << "Number of Photons Generated " <<nphotons << G4endl;
+    G4cout << "Number of Hits  " <<nHits << G4endl;
     // Simulate the photons
       if(nphotons>0 and ngenstep>0){
           std::cout<<g4cx->desc()<<std::endl;
@@ -88,6 +92,7 @@ void EventAction::EndOfEventAction(const G4Event* evt)
           g4cx->simulate(eventID,0); // For Simulation
           //g4cx->render();  // For Rendering
       }
+
 
 }
 
