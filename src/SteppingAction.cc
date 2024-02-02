@@ -41,6 +41,8 @@
 #include "SEvt.hh"
 #include "G4Ions.hh"
 #include "G4Alpha.hh"
+#include "G4CXOpticks.hh"
+namespace {G4Mutex opticks_mt =G4MUTEX_INITIALIZER;}
 namespace B1
 {
 
@@ -76,19 +78,42 @@ void SteppingAction::UserSteppingAction(const G4Step* step)
     if(atrack->GetParticleDefinition()==G4Alpha::Definition()){
 
         // Opticks
-      U4::CollectGenstep_DsG4Scintillation_r4695(atrack,step,100000,0,4*ns);
+      U4::CollectGenstep_DsG4Scintillation_r4695(atrack,step,3000,0,4*ns);
+       //SEvt::AddTorchGenstep();
+        // Opticks
 
 
+        /*
+        G4cout<<" Opticks End of Event Action" <<G4endl;
+        G4AutoLock lock(&opticks_mt);
+        G4CXOpticks * g4cx=G4CXOpticks::Get();
+        G4RunManager* rm     = G4RunManager::GetRunManager();
+        const G4Event* event = rm->GetCurrentEvent();
+        G4int eventID        = event->GetEventID();
+        G4int ngenstep=SEvt::GetNumGenstepFromGenstep(eventID);
+        G4int nphotons=SEvt::GetNumPhotonCollected(eventID);
+
+        G4cout << "Number of Steps Generated " <<ngenstep << G4endl;
+        G4cout << "Number of Photons Generated " <<nphotons << G4endl;
+
+        // Simulate the photons
+        if(nphotons>0 and ngenstep>0){
+            std::cout<<g4cx->desc()<<std::endl;
+            std::cout<<"--- G4Optickx ---" << g4cx->descSimulate() <<std::endl;
+            g4cx->simulate(eventID,1); // For Simulation
+            cudaDeviceSynchronize();
+            //g4cx->render();  // For Rendering
+        }
+        G4int nHits=SEvt::GetNumHit(0);
+        G4cout << "Number of Hits  " <<nHits << G4endl;
+        */
       //SEvt::AddTorchGenstep();
 
       //U4::CollectGenstep_G4Cerenkov_modified(atrack,step,2000,1,0,3.14,1,0,10,2000);
 
 
     }
-    if(atrack->GetParticleDefinition()==G4OpticalPhoton::Definition()){
-        atrack->SetTrackStatus(G4TrackStatus::fStopAndKill);
-        return;
-    }
+
 
 
 }

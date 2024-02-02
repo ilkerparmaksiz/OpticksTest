@@ -52,6 +52,10 @@
 #include "G4LogicalBorderSurface.hh"
 #include "G4OpticalSurface.hh"
 #include "U4SensitiveDetector.hh"
+#include "G4VisAttributes.hh"
+#include "SensorSD.h"
+#include "SensorHit.h"
+#include "G4SDManager.hh"
 namespace B1
 {
 
@@ -70,24 +74,25 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   //
   // World
   //
-  G4Material *GArgon = materials::GAr();
-  GArgon->SetMaterialPropertiesTable(opticalprops::GAr(1000));
+  G4Material *GArgon = materials::GXe(1*bar,270*kelvin);
+  GArgon->SetMaterialPropertiesTable(opticalprops::GXe(1*bar,270*kelvin,0));
   G4Material *MgF2 = materials::MgF2();
   MgF2->SetMaterialPropertiesTable(opticalprops::MgF2());
   G4Material *Steel=materials::Steel();
   Steel->SetMaterialPropertiesTable(opticalprops::STEEL());
-    G4double env_sizeXY = 20*cm, env_sizeZ = 30*cm;
+  G4double env_sizeXY = 20*cm, env_sizeZ = 30*cm;
   G4double world_sizeXY = 1.2*env_sizeXY;
   G4double world_sizeZ  = 1.2*env_sizeZ;
   auto solidWorld = new G4Box("World",                           // its name
     0.5 * world_sizeXY, 0.5 * world_sizeXY, 0.5 * world_sizeZ);  // its size
 
 
-  auto CubeDetector_Solid  = new G4Box("DetectorSolid",1*cm,1*cm,1*cm);  // its size
-  auto CubeDetectorLogic = new G4LogicalVolume (CubeDetector_Solid,MgF2,"MgF2_Logic");
+  auto CubeDetector_Solid  = new G4Box("DetectorSolid",1*cm,1*cm,1*mm);  // its size
+  auto CubeDetectorLogic = new G4LogicalVolume (CubeDetector_Solid,MgF2,"Detector_Logic");
   auto logicWorld = new G4LogicalVolume(solidWorld,  // its solid
                                         Steel,                                       // its material
     "World");                                        // its name
+
 
   auto physWorld = new G4PVPlacement(nullptr,  // no rotation
     G4ThreeVector(),                           // at (0,0,0)
@@ -115,16 +120,43 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   //
   //always return the physical World
   //
-    auto SteelPlace=new G4PVPlacement(0,G4ThreeVector (),"SteelCover",Steel_Cover_logic,physWorld,0,0,0);
-    auto GasArPlace=new G4PVPlacement(0,G4ThreeVector (),"GasAr",logicEnv,SteelPlace,0,0,0);
-    auto DetectorPlace=new G4PVPlacement(0,G4ThreeVector (),"Detector",CubeDetectorLogic,GasArPlace,0,0,0);
+    auto SteelPlace=new G4PVPlacement(0,G4ThreeVector (0,0,0),"SteelCover",Steel_Cover_logic,physWorld,0,0,0);
+    auto GasArPlace=new G4PVPlacement(0,G4ThreeVector (0,0,0),"GasAr",logicEnv,SteelPlace,0,0,0);
+    auto DetectorPlace=new G4PVPlacement(0,G4ThreeVector (0,0,+10*cm),"Detector",CubeDetectorLogic,GasArPlace,0,0,0);
 
+    logicWorld->SetVisAttributes(G4VisAttributes::GetInvisible());
+    Steel_Cover_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+    G4VisAttributes gasVis=new G4VisAttributes();
+    gasVis.SetColor(0,1,1);
+    gasVis.SetForceCloud(true);
+    logicEnv->SetVisAttributes(gasVis);
+    G4VisAttributes detVis=new G4VisAttributes();
+    detVis.SetColor(0,0,1);
+    detVis.SetForceCloud(true);
+    CubeDetectorLogic->SetVisAttributes(detVis);
     G4OpticalSurface *OpSteelSurf = new G4OpticalSurface("SteelSurface", unified, polished, dielectric_metal);
     OpSteelSurf->SetMaterialPropertiesTable(opticalprops::STEEL());
-  std::cout <<"Setting our detector geometry with opticks" <<std::endl;
-  //std::cout << U4Physics::LEVEL <<std::endl;
-  G4VSensitiveDetector *SD = new  U4SensitiveDetector("SD");
-  logicWorld->SetSensitiveDetector(SD);
+
+
+    G4OpticalSurface *opXenon_Glass = new G4OpticalSurface("DetectorSurface");
+    opXenon_Glass->SetMaterialPropertiesTable(opticalprops::MgF2());
+    opXenon_Glass->SetModel(glisur);                  // SetModel
+    opXenon_Glass->SetType(dielectric_dielectric);   // SetType
+    opXenon_Glass->SetFinish(ground);                 // SetFinish
+    opXenon_Glass->SetPolish(0);
+    new G4LogicalBorderSurface("DetectorSurface", GasArPlace, DetectorPlace, opXenon_Glass);
+
+  /*G4SDManager * SDMang=G4SDManager::GetSDMpointer();
+  nexus::SensorSD *SD = new nexus::SensorSD("PhotonDetector/PMT1");
+  SDMang->AddNewDetector(SD);
+  CubeDetectorLogic->SetSensitiveDetector(SD);
+  */
+
+
+
+
+
+  cudaDeviceReset();
   G4CXOpticks::Get()->SetGeometry(physWorld);
 
 

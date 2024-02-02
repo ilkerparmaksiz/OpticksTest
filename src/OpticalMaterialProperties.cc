@@ -131,14 +131,23 @@ namespace opticalprops {
         G4double eWidth = (optPhotMaxE_ - optPhotMinE_) / ri_entries;
     
         std::vector<G4double> ri_energy;
+        std::vector<G4double> REFLECTIVITY;
+        std::vector<G4double> EFFICIENCY;
         for (int i=0; i<ri_entries; i++) 
         {
               ri_energy.push_back(optPhotMinE_ + i * eWidth);
               RIndex.push_back(seq.RefractiveIndex(h_Planck*c_light/ri_energy[i]));
             //G4cout << "* MgF2 rIndex:  " << std::setw(5)
                  // << (h_Planck*c_light/ri_energy[i])/nm << " nm -> " << RIndex[i] << G4endl;
+                 REFLECTIVITY.push_back(0.50);
+                 EFFICIENCY.push_back(1);
         }
           mpt->AddProperty("RINDEX", ri_energy, RIndex);
+
+
+      mpt->AddProperty("REFLECTIVITY", ri_energy, REFLECTIVITY);
+      mpt->AddProperty("EFFICIENCY", ri_energy, EFFICIENCY);
+      //mpt->AddProperty("SURFACE_DETECT", ri_energy, EFFICIENCY,true);
         // AbsLength
         std::vector<G4double> AbsEnergy;
         std::vector<G4double> AbsLength; 
@@ -621,6 +630,9 @@ namespace opticalprops {
     mpt->AddConstProperty("SCINTILLATIONTIMECONSTANT2",   100. * ns);
     mpt->AddConstProperty("SCINTILLATIONYIELD1", .1);
     mpt->AddConstProperty("SCINTILLATIONYIELD2", .9);
+    mpt->AddProperty("FASTCOMPONENT",   sc_energy,intensity,1);
+    mpt->AddProperty("SLOWCOMPONENT",  sc_energy,intensity,1);
+    mpt->AddProperty("REEMISSIONPROB",  sc_energy,intensity,1);
     mpt->AddConstProperty("ATTACHMENT",         e_lifetime, 1);
 
     return mpt;
@@ -1766,8 +1778,8 @@ namespace opticalprops {
     std::vector<G4double> ENERGIES = {
             optPhotMinE_,7.20*eV, 7.29 * eV,  optPhotMaxE_
     };
-    std::vector<G4double> REFLECTIVITY = { 0,0,0,0};
-    std::vector<G4double> EFFICIENCY = { 1,1,1,1};
+    std::vector<G4double> REFLECTIVITY = { 0.30,0.30,0.30,0.30};
+    std::vector<G4double> EFFICIENCY = { 0.7,0.7,0.7,0.7};
 
     mpt->AddProperty("REFLECTIVITY", ENERGIES, REFLECTIVITY);
     mpt->AddProperty("EFFICIENCY", ENERGIES, EFFICIENCY);
