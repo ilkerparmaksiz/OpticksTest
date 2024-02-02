@@ -82,6 +82,7 @@ void EventAction::EndOfEventAction(const G4Event* evt)
     G4int ngenstep=SEvt::GetNumGenstepFromGenstep(eventID);
     G4int nphotons=SEvt::GetNumPhotonCollected(eventID);
     G4int nHits=SEvt::GetNumHit(eventID);
+    SEvt::
     G4cout << "Number of Steps Generated " <<ngenstep << G4endl;
     G4cout << "Number of Photons Generated " <<nphotons << G4endl;
     G4cout << "Number of Hits  " <<nHits << G4endl;
@@ -89,7 +90,7 @@ void EventAction::EndOfEventAction(const G4Event* evt)
       if(nphotons>0 and ngenstep>0){
           std::cout<<g4cx->desc()<<std::endl;
           std::cout<<"--- G4Optickx ---" << g4cx->descSimulate() <<std::endl;
-          g4cx->simulate(eventID,0); // For Simulation
+          g4cx->simulate(eventID,1); // For Simulation
           //g4cx->render();  // For Rendering
       }
 

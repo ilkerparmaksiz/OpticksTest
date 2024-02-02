@@ -127,6 +127,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   logicWorld->SetSensitiveDetector(SD);
   G4CXOpticks::Get()->SetGeometry(physWorld);
 
+
   return physWorld;
 }
 
