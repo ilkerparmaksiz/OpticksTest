@@ -53,121 +53,121 @@
 #include "G4OpticalSurface.hh"
 #include "U4SensitiveDetector.hh"
 #include "G4VisAttributes.hh"
-#include "SensorSD.h"
-#include "SensorHit.h"
+#include "PhotonSD.hh"
 #include "G4SDManager.hh"
-namespace B1
-{
+namespace B1 {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-using namespace CLHEP;
-G4VPhysicalVolume* DetectorConstruction::Construct()
-{
+    using namespace CLHEP;
+
+    G4VPhysicalVolume *DetectorConstruction::Construct() {
 
 
 
 
-    // Option to switch on/off checking of volumes overlaps
-  //
-  G4bool checkOverlaps = true;
+        // Option to switch on/off checking of volumes overlaps
+        //
+        G4bool checkOverlaps = true;
 
-  //
-  // World
-  //
-  G4Material *GXenon = materials::GXe(1*bar,293*kelvin);
-  GXenon->SetMaterialPropertiesTable(opticalprops::GXe(1*bar,293*kelvin,1));
+        //
+        // World
+        //
+        G4Material *GXenon = materials::GXe(1 * bar, 293 * kelvin);
+        GXenon->SetMaterialPropertiesTable(opticalprops::GXe(1 * bar, 293 * kelvin, 30000));
 
-  G4Material *MgF2 = materials::MgF2();
-  MgF2->SetMaterialPropertiesTable(opticalprops::MgF2());
-
-
-  G4Material *Steel=materials::Steel();
-  Steel->SetMaterialPropertiesTable(opticalprops::STEEL());
-
-  G4double env_sizeXY = 20*cm, env_sizeZ = 30*cm;
-  G4double world_sizeXY = 1.2*env_sizeXY;
-  G4double world_sizeZ  = 1.2*env_sizeZ;
-  auto solidWorld = new G4Box("World",                           // its name
-    0.5 * world_sizeXY, 0.5 * world_sizeXY, 0.5 * world_sizeZ);  // its size
+        G4Material *MgF2 = materials::MgF2();
+        MgF2->SetMaterialPropertiesTable(opticalprops::MgF2());
 
 
-  auto CubeDetector_Solid  = new G4Box("DetectorSolid",10*cm,10*cm,1*mm);  // its size
-  auto CubeDetectorLogic = new G4LogicalVolume (CubeDetector_Solid,MgF2,"Detector_Logic");
-  auto logicWorld = new G4LogicalVolume(solidWorld,  // its solid
-                                        GXenon,                                       // its material
-    "World");                                        // its name
+        G4Material *Steel = materials::Steel();
+        Steel->SetMaterialPropertiesTable(opticalprops::STEEL());
+
+        G4double env_sizeXY = 20 * cm, env_sizeZ = 30 * cm;
+        G4double world_sizeXY = 1.2 * env_sizeXY;
+        G4double world_sizeZ = 1.2 * env_sizeZ;
+        auto solidWorld = new G4Box("World",                           // its name
+                                    0.5 * world_sizeXY, 0.5 * world_sizeXY, 0.5 * world_sizeZ);  // its size
 
 
-
-  auto physWorld = new G4PVPlacement(nullptr,  // no rotation
-    G4ThreeVector(),                           // at (0,0,0)
-    logicWorld,                                // its logical volume
-    "World",                                   // its name
-    nullptr,                                   // its mother  volume
-    false,                                     // no boolean operation
-    0,                                         // copy number
-    checkOverlaps);                            // overlaps checking
-
-  //
-  // Envelope
-  //
-  auto solidEnv = new G4Box("GasXe_Solid",                    // its name
-    0.5 * env_sizeXY, 0.5 * env_sizeXY, 0.5 * env_sizeZ);  // its size
-
-  auto logicEnv = new G4LogicalVolume(solidEnv,GXenon,"GasXe_Logic");
-
-
-    auto Steel_Cover_solid = new G4Box("SteelCover_Solid",                    // its name
-                              0.5 * env_sizeXY+5*CLHEP::mm, 0.5 * env_sizeXY+10*CLHEP::mm, 0.5 * env_sizeZ+5*CLHEP::mm);  // its size
-    auto Steel_Cover_logic = new G4LogicalVolume(Steel_Cover_solid,  // its solid
-                                                 Steel,                                     // its material
-                                        "SteelCover_logic");                                 // its name
-  //
-  //always return the physical World
-  //
-    auto SteelPlace=new G4PVPlacement(0,G4ThreeVector (0,0,0),"SteelCover",Steel_Cover_logic,physWorld,0,0,0);
-    auto GasXePlace=new G4PVPlacement(0,G4ThreeVector (0,0,0),"GasXe",logicEnv,SteelPlace,0,0,0);
-    auto DetectorPlace=new G4PVPlacement(0,G4ThreeVector (0,0,-10*cm),"Detector",CubeDetectorLogic,GasXePlace,0,0,0);
-
-    logicWorld->SetVisAttributes(G4VisAttributes::GetInvisible());
-    Steel_Cover_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
-    G4VisAttributes gasVis=new G4VisAttributes();
-    gasVis.SetColor(0,1,1);
-    gasVis.SetForceCloud(true);
-    logicEnv->SetVisAttributes(gasVis);
-    G4VisAttributes detVis=new G4VisAttributes();
-    detVis.SetColor(0,0,1);
-    detVis.SetForceCloud(true);
-    CubeDetectorLogic->SetVisAttributes(detVis);
-    //G4OpticalSurface *OpSteelSurf = new G4OpticalSurface("SteelSurface", unified, polished, dielectric_metal);
-    //OpSteelSurf->SetMaterialPropertiesTable(opticalprops::STEEL());
-
-
-    G4OpticalSurface *opXenon_Glass = new G4OpticalSurface("DetectorSurface");
-    opXenon_Glass->SetMaterialPropertiesTable(opticalprops::MgF2());
-    opXenon_Glass->SetModel(glisur);                  // SetModel
-    opXenon_Glass->SetType(dielectric_dielectric);   // SetType
-    opXenon_Glass->SetFinish(ground);                 // SetFinish
-    opXenon_Glass->SetPolish(0);
-    //new G4LogicalBorderSurface("DetectorSurface", GasXePlace, DetectorPlace, opXenon_Glass);
-
- G4SDManager * SDMang=G4SDManager::GetSDMpointer();
-  nexus::SensorSD *SD = new nexus::SensorSD("PhotonDetector/PMT1");
-  SDMang->AddNewDetector(SD);
-  CubeDetectorLogic->SetSensitiveDetector(SD);
+        auto CubeDetector_Solid = new G4Box("DetectorSolid", 1 * cm, 1 * cm, 1/2 * mm);  // its size
+        auto CubeDetectorLogic = new G4LogicalVolume(CubeDetector_Solid, MgF2, "Detector_Logic");
+        auto logicWorld = new G4LogicalVolume(solidWorld,  // its solid
+                                              GXenon,                                       // its material
+                                              "World");                                        // its name
 
 
 
+        auto physWorld = new G4PVPlacement(nullptr,  // no rotation
+                                           G4ThreeVector(),                           // at (0,0,0)
+                                           logicWorld,                                // its logical volume
+                                           "World",                                   // its name
+                                           nullptr,                                   // its mother  volume
+                                           false,                                     // no boolean operation
+                                           0,                                         // copy number
+                                           checkOverlaps);                            // overlaps checking
+
+        //
+        // Envelope
+        //
+        auto solidEnv = new G4Box("GasXe_Solid",                    // its name
+                                  0.5 * env_sizeXY, 0.5 * env_sizeXY, 0.5 * env_sizeZ);  // its size
+
+        auto logicEnv = new G4LogicalVolume(solidEnv, GXenon, "GasXe_Logic");
+
+
+        auto Steel_Cover_solid = new G4Box("SteelCover_Solid",                    // its name
+                                           0.5 * env_sizeXY + 5 * CLHEP::mm, 0.5 * env_sizeXY + 10 * CLHEP::mm,
+                                           0.5 * env_sizeZ + 5 * CLHEP::mm);  // its size
+        auto Steel_Cover_logic = new G4LogicalVolume(Steel_Cover_solid,  // its solid
+                                                     Steel,                                     // its material
+                                                     "SteelCover_logic");                                 // its name
+        //
+        //always return the physical World
+        //
+        auto SteelPlace = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), "SteelCover", Steel_Cover_logic, physWorld, 0, 0,
+                                            0);
+        auto GasXePlace = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), "GasXe", logicEnv, SteelPlace, 0, 0, 0);
+        auto DetectorPlace = new G4PVPlacement(0, G4ThreeVector(0, 0, -10 * cm), "Detector", CubeDetectorLogic, GasXePlace, 0, 0,0);
+
+        logicWorld->SetVisAttributes(G4VisAttributes::GetInvisible());
+        Steel_Cover_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+        G4VisAttributes gasVis = new G4VisAttributes();
+        gasVis.SetColor(0, 1, 1);
+        gasVis.SetForceCloud(true);
+        logicEnv->SetVisAttributes(gasVis);
+        G4VisAttributes detVis = new G4VisAttributes();
+        detVis.SetColor(0, 0, 1);
+        detVis.SetForceCloud(true);
+        CubeDetectorLogic->SetVisAttributes(detVis);
+        //G4OpticalSurface *OpSteelSurf = new G4OpticalSurface("SteelSurface", unified, polished, dielectric_metal);
+        //OpSteelSurf->SetMaterialPropertiesTable(opticalprops::STEEL());
+
+
+        G4OpticalSurface *opXenon_Glass = new G4OpticalSurface("DetectorSurface");
+        opXenon_Glass->SetMaterialPropertiesTable(opticalprops::MgF2());
+        opXenon_Glass->SetModel(glisur);                  // SetModel
+        opXenon_Glass->SetType(dielectric_dielectric);   // SetType
+        opXenon_Glass->SetFinish(ground);                 // SetFinish
+        opXenon_Glass->SetPolish(0);
+
+        new G4LogicalBorderSurface("DetectorSurface", GasXePlace, DetectorPlace, opXenon_Glass);
+
+        Detector=CubeDetectorLogic;
+        G4SDManager *Mang = G4SDManager::GetSDMpointer();
+        PhotonSD *SD = new PhotonSD("PMT1");
+        Mang->AddNewDetector(SD);
+        Detector->SetSensitiveDetector(SD);
+
+        cudaDeviceReset();
+        G4CXOpticks::Get()->SetGeometry(physWorld);
 
 
 
-  cudaDeviceReset();
-  G4CXOpticks::Get()->SetGeometry(physWorld);
+        return physWorld;
+    }
+
+    void DetectorConstruction::ConstructSDandField() {
 
 
-  return physWorld;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
+    }
 }

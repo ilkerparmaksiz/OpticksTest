@@ -36,8 +36,9 @@
 #  include "NP.hh"
 #  include "G4CXOpticks.hh"
 #include "U4Recorder.hh"
-#include "U4Hit.h"
+#include "PhotonSD.hh"
 #include "U4HitGet.h"
+#include "G4SDManager.hh"
 namespace {G4Mutex opticks_mt =G4MUTEX_INITIALIZER;}
 namespace B1
 {
@@ -83,21 +84,28 @@ void EventAction::EndOfEventAction(const G4Event* evt)
     G4int nphotons=SEvt::GetNumPhotonCollected(eventID);
 
 
-    G4cout << "Number of Steps Generated " <<ngenstep << G4endl;
-    G4cout << "Number of Photons Generated " <<nphotons << G4endl;
 
     // Simulate the photons
       if(nphotons>0 and ngenstep>0){
           std::cout<<g4cx->desc()<<std::endl;
           std::cout<<"--- G4Optickx ---" << g4cx->descSimulate() <<std::endl;
-          g4cx->simulate(eventID,1); // For Simulation
+          g4cx->simulate(eventID,0); // For Simulation
           cudaDeviceSynchronize();
           //g4cx->render();  // For Rendering
       }
-    G4int nHits=SEvt::GetNumHit(0);
 
-    G4cout << "Number of Hits  " <<nHits << G4endl;
-    //G4CXOpticks::Get()->reset(eventID);
+
+    PhotonSD* SD = (PhotonSD*) G4SDManager::GetSDMpointer()->FindSensitiveDetector("PMT1");
+    if(SEvt::GetNumHit(eventID)>0){
+        SD->OpticksHits();
+
+    }
+
+    G4cout << "Number of Steps Generated " <<ngenstep << G4endl;
+    G4cout << "Number of Photons Generated " <<nphotons << G4endl;
+    G4cout << "Number of Hits Opticks  " <<SEvt::GetNumHit(eventID)<< G4endl;
+    G4cout << "Number of Hits GEANT4  " <<SD->GetGEANT4Hits()<< G4endl;
+    G4CXOpticks::Get()->reset(eventID);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

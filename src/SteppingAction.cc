@@ -43,6 +43,10 @@
 #include "G4Alpha.hh"
 #include "G4CXOpticks.hh"
 #include "G4AnalysisManager.hh"
+#include "SEventConfig.hh"
+#include "G4Scintillation.hh"
+#include "G4EventManager.hh"
+
 namespace {G4Mutex opticks_mt =G4MUTEX_INITIALIZER;}
 namespace B1
 {
@@ -51,7 +55,10 @@ namespace B1
 
 SteppingAction::SteppingAction(EventAction* eventAction)
 : fEventAction(eventAction)
-{}
+{
+
+    Counter=0;
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -70,19 +77,8 @@ void SteppingAction::UserSteppingAction(const G4Step* step)
 
 
   auto atrack=step->GetTrack();
-  if(atrack->GetParticleDefinition()==G4OpticalPhoton::Definition())  {
+  if(atrack->GetParticleDefinition()!=G4OpticalPhoton::Definition())  {
 
-      ana->FillNtupleIColumn(0,0,run->GetCurrentEvent()->GetEventID());
-      ana->FillNtupleDColumn(0,1,atrack->GetPosition()[0]/mm);
-      ana->FillNtupleDColumn(0,2,atrack->GetPosition()[1]/mm);
-      ana->FillNtupleDColumn(0,3,atrack->GetPosition()[2]/mm);
-      ana->FillNtupleDColumn(0,4,atrack->GetProperTime()/ns);
-      ana->FillNtupleSColumn(0,5,VolumeName);
-      //std::cout<<VolumeName<<std::endl;
-      ana->AddNtupleRow(0);
-
-
-  }else {
       ana->FillNtupleIColumn(1,0,run->GetCurrentEvent()->GetEventID());
       ana->FillNtupleIColumn(1,1,atrack->GetTrackID());
       ana->FillNtupleSColumn(1,2,atrack->GetParticleDefinition()->GetParticleName());
@@ -92,15 +88,46 @@ void SteppingAction::UserSteppingAction(const G4Step* step)
       ana->FillNtupleDColumn(1,6,atrack->GetProperTime()/ns);
       ana->FillNtupleSColumn(1,7,VolumeName);
       ana->AddNtupleRow(1);
-      //G4Exception("test","test",FatalException,"test");
   }
 
 
-    if(atrack->GetParticleDefinition()==G4Alpha::Definition()){
+
         G4double edepStep = step->GetTotalEnergyDeposit();
         fEventAction->AddEdep(edepStep);
         // Opticks
-      U4::CollectGenstep_DsG4Scintillation_r4695(atrack,step,1,0,4*ns);
+
+        G4SteppingManager * sMg=G4EventManager::GetEventManager()->GetTrackingManager()->GetSteppingManager();
+        G4StepStatus stepStatus=sMg->GetfStepStatus();
+        if(stepStatus!=fAtRestDoItProc){
+            G4ProcessVector * PostStepProc=sMg->GetfPostStepDoItVector();
+            size_t MaxSteps=sMg->GetMAXofPostStepLoops();
+            for (int stp=0;stp<MaxSteps;stp++){
+                if((*PostStepProc)[stp]->GetProcessName()=="Scintillation"){
+                    G4Scintillation *ScintProc= (G4Scintillation*) (*PostStepProc)[stp];
+                    G4int num_photons=ScintProc->GetNumPhotons();
+
+
+                    if(num_photons>0){
+                        G4MaterialPropertiesTable * MPT = atrack->GetMaterial()->GetMaterialPropertiesTable();
+                        G4double t1,t2=0;
+                        G4int singlets,triplets=0;
+                        t1=MPT->GetConstProperty(kSCINTILLATIONTIMECONSTANT1);
+                        t2=MPT->GetConstProperty(kSCINTILLATIONTIMECONSTANT2);
+                        singlets= floor(MPT->GetConstProperty(kSCINTILLATIONYIELD1)*num_photons);
+                        triplets= ceil(MPT->GetConstProperty(kSCINTILLATIONYIELD2)*num_photons);
+                        //std::cout << "Scintilation "<< num_photons <<" Amount of Singlets " <<singlets <<" Triplets " << triplets <<std::endl;
+                        if(singlets>0)
+                            U4::CollectGenstep_DsG4Scintillation_r4695(atrack,step,singlets,0,t1);
+                        if(triplets>0)
+                            U4::CollectGenstep_DsG4Scintillation_r4695(atrack,step,triplets,1,t2);
+                        //U4::CollectGenstep_DsG4Scintillation_r4695(atrack,step,num_photons,1,t2);
+                    }
+
+                }
+            }
+        }
+
+        //U4::CollectGenstep_G4Cerenkov_modified(atrack,step,2000,1,0,3.14,1,0,2000,2000);
 
        //SEvt::AddTorchGenstep();
         // Opticks
@@ -135,7 +162,9 @@ void SteppingAction::UserSteppingAction(const G4Step* step)
       //U4::CollectGenstep_G4Cerenkov_modified(atrack,step,2000,1,0,3.14,1,0,10,2000);
 
 
-    }
+
+
+
 
 
 

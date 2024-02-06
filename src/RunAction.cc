@@ -59,13 +59,14 @@ RunAction::RunAction()
     ana->SetVerboseLevel(1);
     ana->SetNtupleMerging(true);
     // Create NTuple
-    ana->CreateNtuple("Photons","Photon Info");
+    ana->CreateNtuple("G4Photons","GEANT4 Photon Info");
     ana->CreateNtupleIColumn("Event");
     ana->CreateNtupleDColumn("fx");
     ana->CreateNtupleDColumn("fy");
     ana->CreateNtupleDColumn("fz");
     ana->CreateNtupleDColumn("ft");
     ana->CreateNtupleSColumn("Volume");
+    ana->CreateNtupleSColumn("Process");
     ana->FinishNtuple();
 
     ana->CreateNtuple("particles","Particle Names");
@@ -77,6 +78,25 @@ RunAction::RunAction()
     ana->CreateNtupleDColumn("z");
     ana->CreateNtupleDColumn("t");
     ana->CreateNtupleSColumn("Volume");
+
+    ana->CreateNtuple("Opticks","Opticks Photon Hits");
+    ana->CreateNtupleIColumn("Event");
+    ana->CreateNtupleIColumn("id");
+    ana->CreateNtupleFColumn("x");
+    ana->CreateNtupleFColumn("y");
+    ana->CreateNtupleFColumn("z");
+    ana->CreateNtupleFColumn("t");
+    ana->CreateNtupleFColumn("mx");
+    ana->CreateNtupleFColumn("my");
+    ana->CreateNtupleFColumn("mz");
+    ana->CreateNtupleFColumn("px");
+    ana->CreateNtupleFColumn("py");
+    ana->CreateNtupleFColumn("pz");
+    ana->CreateNtupleFColumn("wavelength");
+
+
+
+
 
     ana->FinishNtuple();
     ana->SetNtupleActivation(1);

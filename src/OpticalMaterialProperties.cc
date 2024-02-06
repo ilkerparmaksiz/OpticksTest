@@ -140,7 +140,7 @@ namespace opticalprops {
             //G4cout << "* MgF2 rIndex:  " << std::setw(5)
                  // << (h_Planck*c_light/ri_energy[i])/nm << " nm -> " << RIndex[i] << G4endl;
                  REFLECTIVITY.push_back(0.5);
-                 EFFICIENCY.push_back(1);
+                 EFFICIENCY.push_back(0.5);
         }
           mpt->AddProperty("RINDEX", ri_energy, RIndex);
 
@@ -612,8 +612,12 @@ namespace opticalprops {
       sc_energy.push_back(6.20625 * eV + 0.01 * i * eV);
     }
     std::vector<G4double> intensity;
-    for (G4int i=0; i<sc_entries; i++) {
+    std::vector<G4double> IntensityReemmision;
+
+      for (G4int i=0; i<sc_entries; i++) {
       intensity.push_back(GXeScintillation(sc_energy[i], pressure));
+      IntensityReemmision.push_back(1);
+
     }
     //for (int i=0; i<sc_entries; i++) {
     //  G4cout << "* GXe Scint:  " << std::setw(7) << sc_energy[i]/eV
@@ -1680,6 +1684,7 @@ namespace opticalprops {
     // Properties from geant4/examples/extended/optical/wls
     G4MaterialPropertiesTable* mpt = new G4MaterialPropertiesTable();
 
+    // REFRACTIVE INDEX
     // REFRACTIVE INDEX
     std::vector<G4double> rIndex_energies = {optPhotMinE_, optPhotMaxE_};
     std::vector<G4double> rIndex          = {1.49, 1.49};
