@@ -42,6 +42,7 @@
 #include "G4Ions.hh"
 #include "G4Alpha.hh"
 #include "G4CXOpticks.hh"
+#include "G4AnalysisManager.hh"
 namespace {G4Mutex opticks_mt =G4MUTEX_INITIALIZER;}
 namespace B1
 {
@@ -56,29 +57,51 @@ SteppingAction::SteppingAction(EventAction* eventAction)
 
 void SteppingAction::UserSteppingAction(const G4Step* step)
 {
-  if (!fScoringVolume) {
-    const auto detConstruction = static_cast<const DetectorConstruction*>(
-      G4RunManager::GetRunManager()->GetUserDetectorConstruction());
-    fScoringVolume = detConstruction->GetScoringVolume();
-  }
 
-  // get volume of the current step
+    auto ana=G4AnalysisManager::Instance();
+    auto run=G4RunManager::GetRunManager();
+
   G4LogicalVolume* volume
     = step->GetPreStepPoint()->GetTouchableHandle()
       ->GetVolume()->GetLogicalVolume();
+  G4String VolumeName="None";
+  if(volume->GetName()!="") VolumeName=volume->GetName();
 
-  // check if we are in scoring volume
-  //if (volume != fScoringVolume) return;
 
-  // collect energy deposited in this step
-  G4double edepStep = step->GetTotalEnergyDeposit();
-  fEventAction->AddEdep(edepStep);
+
   auto atrack=step->GetTrack();
+  if(atrack->GetParticleDefinition()==G4OpticalPhoton::Definition())  {
+
+      ana->FillNtupleIColumn(0,0,run->GetCurrentEvent()->GetEventID());
+      ana->FillNtupleDColumn(0,1,atrack->GetPosition()[0]/mm);
+      ana->FillNtupleDColumn(0,2,atrack->GetPosition()[1]/mm);
+      ana->FillNtupleDColumn(0,3,atrack->GetPosition()[2]/mm);
+      ana->FillNtupleDColumn(0,4,atrack->GetProperTime()/ns);
+      ana->FillNtupleSColumn(0,5,VolumeName);
+      //std::cout<<VolumeName<<std::endl;
+      ana->AddNtupleRow(0);
+
+
+  }else {
+      ana->FillNtupleIColumn(1,0,run->GetCurrentEvent()->GetEventID());
+      ana->FillNtupleIColumn(1,1,atrack->GetTrackID());
+      ana->FillNtupleSColumn(1,2,atrack->GetParticleDefinition()->GetParticleName());
+      ana->FillNtupleDColumn(1,3,atrack->GetPosition()[0]/mm);
+      ana->FillNtupleDColumn(1,4,atrack->GetPosition()[1]/mm);
+      ana->FillNtupleDColumn(1,5,atrack->GetPosition()[2]/mm);
+      ana->FillNtupleDColumn(1,6,atrack->GetProperTime()/ns);
+      ana->FillNtupleSColumn(1,7,VolumeName);
+      ana->AddNtupleRow(1);
+      //G4Exception("test","test",FatalException,"test");
+  }
+
 
     if(atrack->GetParticleDefinition()==G4Alpha::Definition()){
-
+        G4double edepStep = step->GetTotalEnergyDeposit();
+        fEventAction->AddEdep(edepStep);
         // Opticks
-      U4::CollectGenstep_DsG4Scintillation_r4695(atrack,step,3000,0,4*ns);
+      U4::CollectGenstep_DsG4Scintillation_r4695(atrack,step,1,0,4*ns);
+
        //SEvt::AddTorchGenstep();
         // Opticks
 

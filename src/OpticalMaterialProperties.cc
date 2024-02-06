@@ -139,7 +139,7 @@ namespace opticalprops {
               RIndex.push_back(seq.RefractiveIndex(h_Planck*c_light/ri_energy[i]));
             //G4cout << "* MgF2 rIndex:  " << std::setw(5)
                  // << (h_Planck*c_light/ri_energy[i])/nm << " nm -> " << RIndex[i] << G4endl;
-                 REFLECTIVITY.push_back(0.50);
+                 REFLECTIVITY.push_back(0.5);
                  EFFICIENCY.push_back(1);
         }
           mpt->AddProperty("RINDEX", ri_energy, RIndex);

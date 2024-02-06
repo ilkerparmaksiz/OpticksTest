@@ -56,7 +56,7 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
   G4ParticleDefinition* particle
     = particleTable->FindParticle(particleName="alpha");
   fParticleGun->SetParticleDefinition(particle);
-  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(1,0.,0));
+  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0,0.,1));
   fParticleGun->SetParticleEnergy(5.*MeV);
 }
 
@@ -78,32 +78,12 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   // on DetectorConstruction class we get Envelope volume
   // from G4LogicalVolumeStore.
 
-  G4double envSizeXY = 0;
-  G4double envSizeZ = 0;
 
-  if (!fEnvelopeBox)
-  {
-    G4LogicalVolume* envLV
-      = G4LogicalVolumeStore::GetInstance()->GetVolume("GasAr_Logic");
-    if ( envLV ) fEnvelopeBox = dynamic_cast<G4Box*>(envLV->GetSolid());
-  }
 
-  if ( fEnvelopeBox ) {
-    envSizeXY = fEnvelopeBox->GetXHalfLength()*2.;
-    envSizeZ = fEnvelopeBox->GetZHalfLength()*2.;
-  }
-  else  {
-    G4ExceptionDescription msg;
-    msg << "Envelope volume of box shape not found.\n";
-    msg << "Perhaps you have changed geometry.\n";
-    msg << "The gun will be place at the center.";
-    G4Exception("PrimaryGeneratorAction::GeneratePrimaries()",
-     "MyCode0002",JustWarning,msg);
-  }
 
   G4double x0 = 0 ;
   G4double y0 = 0;
-  G4double z0 = 10*mm;
+  G4double z0 = 0;
 
   fParticleGun->SetParticlePosition(G4ThreeVector(x0,y0,z0));
 

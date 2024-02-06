@@ -63,7 +63,7 @@ int main(int argc,char** argv)
     OPTICKS_LOG__(argc,argv);
     // Opticks
     auto fRecorder= new U4Recorder();
-    SEventConfig::SetMaxPhoton(1000000);
+    SEventConfig::SetMaxPhoton(10000000);
     //SEventConfig::SetRGModeSimulate();
     //SEventConfig::SetRGModeRender();
     SEventConfig::SetRGModeSimulate();

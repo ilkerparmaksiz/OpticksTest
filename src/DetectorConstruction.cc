@@ -74,12 +74,16 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   //
   // World
   //
-  G4Material *GArgon = materials::GXe(1*bar,270*kelvin);
-  GArgon->SetMaterialPropertiesTable(opticalprops::GXe(1*bar,270*kelvin,0));
+  G4Material *GXenon = materials::GXe(1*bar,293*kelvin);
+  GXenon->SetMaterialPropertiesTable(opticalprops::GXe(1*bar,293*kelvin,1));
+
   G4Material *MgF2 = materials::MgF2();
   MgF2->SetMaterialPropertiesTable(opticalprops::MgF2());
+
+
   G4Material *Steel=materials::Steel();
   Steel->SetMaterialPropertiesTable(opticalprops::STEEL());
+
   G4double env_sizeXY = 20*cm, env_sizeZ = 30*cm;
   G4double world_sizeXY = 1.2*env_sizeXY;
   G4double world_sizeZ  = 1.2*env_sizeZ;
@@ -87,11 +91,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     0.5 * world_sizeXY, 0.5 * world_sizeXY, 0.5 * world_sizeZ);  // its size
 
 
-  auto CubeDetector_Solid  = new G4Box("DetectorSolid",1*cm,1*cm,1*mm);  // its size
+  auto CubeDetector_Solid  = new G4Box("DetectorSolid",10*cm,10*cm,1*mm);  // its size
   auto CubeDetectorLogic = new G4LogicalVolume (CubeDetector_Solid,MgF2,"Detector_Logic");
   auto logicWorld = new G4LogicalVolume(solidWorld,  // its solid
-                                        Steel,                                       // its material
+                                        GXenon,                                       // its material
     "World");                                        // its name
+
 
 
   auto physWorld = new G4PVPlacement(nullptr,  // no rotation
@@ -106,10 +111,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   //
   // Envelope
   //
-  auto solidEnv = new G4Box("GasAr_Solid",                    // its name
+  auto solidEnv = new G4Box("GasXe_Solid",                    // its name
     0.5 * env_sizeXY, 0.5 * env_sizeXY, 0.5 * env_sizeZ);  // its size
 
-  auto logicEnv = new G4LogicalVolume(solidEnv,GArgon,"GasAr_Logic");
+  auto logicEnv = new G4LogicalVolume(solidEnv,GXenon,"GasXe_Logic");
 
 
     auto Steel_Cover_solid = new G4Box("SteelCover_Solid",                    // its name
@@ -121,8 +126,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   //always return the physical World
   //
     auto SteelPlace=new G4PVPlacement(0,G4ThreeVector (0,0,0),"SteelCover",Steel_Cover_logic,physWorld,0,0,0);
-    auto GasArPlace=new G4PVPlacement(0,G4ThreeVector (0,0,0),"GasAr",logicEnv,SteelPlace,0,0,0);
-    auto DetectorPlace=new G4PVPlacement(0,G4ThreeVector (0,0,+10*cm),"Detector",CubeDetectorLogic,GasArPlace,0,0,0);
+    auto GasXePlace=new G4PVPlacement(0,G4ThreeVector (0,0,0),"GasXe",logicEnv,SteelPlace,0,0,0);
+    auto DetectorPlace=new G4PVPlacement(0,G4ThreeVector (0,0,-10*cm),"Detector",CubeDetectorLogic,GasXePlace,0,0,0);
 
     logicWorld->SetVisAttributes(G4VisAttributes::GetInvisible());
     Steel_Cover_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
@@ -134,8 +139,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     detVis.SetColor(0,0,1);
     detVis.SetForceCloud(true);
     CubeDetectorLogic->SetVisAttributes(detVis);
-    G4OpticalSurface *OpSteelSurf = new G4OpticalSurface("SteelSurface", unified, polished, dielectric_metal);
-    OpSteelSurf->SetMaterialPropertiesTable(opticalprops::STEEL());
+    //G4OpticalSurface *OpSteelSurf = new G4OpticalSurface("SteelSurface", unified, polished, dielectric_metal);
+    //OpSteelSurf->SetMaterialPropertiesTable(opticalprops::STEEL());
 
 
     G4OpticalSurface *opXenon_Glass = new G4OpticalSurface("DetectorSurface");
@@ -144,13 +149,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     opXenon_Glass->SetType(dielectric_dielectric);   // SetType
     opXenon_Glass->SetFinish(ground);                 // SetFinish
     opXenon_Glass->SetPolish(0);
-    new G4LogicalBorderSurface("DetectorSurface", GasArPlace, DetectorPlace, opXenon_Glass);
+    //new G4LogicalBorderSurface("DetectorSurface", GasXePlace, DetectorPlace, opXenon_Glass);
 
-  /*G4SDManager * SDMang=G4SDManager::GetSDMpointer();
+ G4SDManager * SDMang=G4SDManager::GetSDMpointer();
   nexus::SensorSD *SD = new nexus::SensorSD("PhotonDetector/PMT1");
   SDMang->AddNewDetector(SD);
   CubeDetectorLogic->SetSensitiveDetector(SD);
-  */
+
 
 
 
